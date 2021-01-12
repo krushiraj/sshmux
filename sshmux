@@ -1,0 +1,85 @@
+#!/bin/bash
+set -euo pipefail
+
+trap "exit 1" SIGTSTP
+
+read_tmux_session_name() {
+    ARGS=""
+
+    while [[ $# > 0 ]]
+    do
+    key="$1"
+
+    case $key in
+        -s|--session)
+        export T_ARG="$2"
+        shift # past argument
+        ;;
+        -v|--verbose)
+        ARGS="$ARGS $1"
+        export SSHMUX_VERBOSE=true
+        ;;
+        --tmux-path)
+        export TMUX_PATH="$2"
+        shift # past argument
+        ;;
+        --ls)
+        export TMUX_LS="ls"
+        ;;
+        *)
+        # unknown option
+        ARGS="$ARGS $1"
+        ;;
+    esac
+    shift # past argument or value
+    done
+    export SSHMUX_ARGS=$ARGS
+}
+
+TMUX_LS=""
+T_ARG=""
+SSHMUX_VERBOSE=""
+SSHMUX_ARGS=""
+TMUX_PATH=""
+read_tmux_session_name "$@"
+if [ ! -z $TMUX_LS ]; then
+    ssh $SSHMUX_ARGS -t "export PATH=\$PATH:${TMUX_PATH}; tmux ls"
+    exit 1
+fi
+if [ -z $T_ARG ]; then
+    ssh "$@"
+    exit 1
+fi
+
+RETRY_IN=1
+INIT_TIME=`date +%s`
+LAST_FAIL_TIME=$INIT_TIME
+while ! ssh $SSHMUX_ARGS -o ConnectTimeout=0 -o ServerAliveInterval=5 -o ServerAliveCountmax=2 -t "export PATH=\$PATH:$TMUX_PATH; tmux -2 attach -t $T_ARG || tmux -2 new -s $T_ARG" 2>/tmp/.sshmux_log
+do
+    CURRENT_TIME=`date +%s`
+    if [ $CURRENT_TIME -lt $(($INIT_TIME + 10)) ]; then
+        cat /tmp/.sshmux_log
+        exit 1;
+    fi
+    tput cup 0 0
+    tput el
+    tput el1
+
+    if [ $(($LAST_FAIL_TIME + $RETRY_IN / 2 + 5)) -lt $CURRENT_TIME ]; then # we have succeeded since the last failure
+        LAST_FAIL_TIME=$CURRENT_TIME
+        RETRY_IN=1
+    fi
+
+
+    node -e 'const secs = '$RETRY_IN';
+        console.log(
+          `${new Date()}: Connection lost: retrying in ${secs} seconds (Press enter to try again now)`
+        );'
+    if [ $SSHMUX_VERBOSE ]; then
+        echo ''
+        cat /tmp/.sshmux_log
+    fi
+
+    read -t $RETRY_IN || true
+    RETRY_IN=$(($RETRY_IN*2))
+done
