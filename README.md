@@ -24,5 +24,3 @@ sshmux myserver --ls
 Once you have established the connection it is same as using `tmux`.
 
 Refer this cheatsheet to know more about `tmux` - [https://tmuxcheatsheet.com/](https://tmuxcheatsheet.com/)
-
-> PS: The code in the executable is not mine. I used this sometime ago in Linux and found parts of code in some archives and rebuilt it.
