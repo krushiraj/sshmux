@@ -41,20 +41,21 @@ Refer this cheatsheet to know more about `tmux` - [https://tmuxcheatsheet.com/](
 # Development
 
 ## Creating a Release
-To update the Homebrew formula for a new release:
+To create a new release:
 
-1. Create and push a version tag in this repository:
+1. Calculate the SHA256 for the new version:
    ```bash
-   git tag v1.0.1
-   git push origin v1.0.1
+   curl -L https://github.com/krushiraj/homebrew-sshmux/archive/refs/tags/v1.0.1.tar.gz | shasum -a 256
    ```
 
-2. Calculate the SHA256 for the release:
-   ```bash
-   curl -L https://github.com/krushiraj/sshmux/archive/refs/tags/v1.0.1.tar.gz | shasum -a 256
-   ```
-
-3. Update the formula in the [homebrew-sshmux](https://github.com/krushiraj/homebrew-sshmux) repository:
+2. Update `Formula/sshmux.rb`:
    - Update the `url` version tag
    - Update the `sha256` hash with the calculated value
-   - Commit and push the changes
+
+3. Commit, tag, and push:
+   ```bash
+   git add Formula/sshmux.rb
+   git commit -m "Release v1.0.1"
+   git tag v1.0.1
+   git push && git push --tags
+   ```
