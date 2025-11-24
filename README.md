@@ -5,7 +5,8 @@
 
 ## Homebrew (macOS/Linux)
 ```bash
-brew install krushiraj/sshmux/sshmux
+brew tap krushiraj/sshmux
+brew install sshmux
 ```
 
 ## Manual Installation
@@ -40,19 +41,20 @@ Refer this cheatsheet to know more about `tmux` - [https://tmuxcheatsheet.com/](
 # Development
 
 ## Creating a Release
-To enable Homebrew installation, you need to create a tagged release:
+To update the Homebrew formula for a new release:
 
-1. Create and push a version tag:
+1. Create and push a version tag in this repository:
    ```bash
-   git tag v1.0.0
-   git push origin v1.0.0
+   git tag v1.0.1
+   git push origin v1.0.1
    ```
 
 2. Calculate the SHA256 for the release:
    ```bash
-   curl -L https://github.com/krushiraj/sshmux/archive/refs/tags/v1.0.0.tar.gz | shasum -a 256
+   curl -L https://github.com/krushiraj/sshmux/archive/refs/tags/v1.0.1.tar.gz | shasum -a 256
    ```
 
-3. Update the `sha256` field in `Formula/sshmux.rb` with the calculated hash
-
-4. Commit and push the formula update
+3. Update the formula in the [homebrew-sshmux](https://github.com/krushiraj/homebrew-sshmux) repository:
+   - Update the `url` version tag
+   - Update the `sha256` hash with the calculated value
+   - Commit and push the changes
